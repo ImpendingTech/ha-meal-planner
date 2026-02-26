@@ -1,0 +1,28 @@
+name: Meal Planner
+description: Storecupboard, meal plans, shopping lists and expiry alerts — powered by JSON files and Claude
+version: "1.0.0"
+slug: meal-planner
+url: https://github.com/ImpendingTech/ha-meal-planner
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+ports:
+  5005/tcp: 5005
+ports_description:
+  5005/tcp: Dashboard web UI
+map:
+  - share:rw
+options:
+  data_path: /share/meal-planner
+schema:
+  data_path: str
+panel_icon: mdi:food-apple
+panel_title: Meals
+ingress: true
+ingress_port: 5005
+startup: application
+boot: auto
+init: false
