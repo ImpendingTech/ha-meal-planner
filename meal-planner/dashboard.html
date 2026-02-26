@@ -283,7 +283,14 @@
 </div>
 
 <script>
-const API = window.location.pathname.replace(/\/+$/, '');
+// Detect ingress base path — works both inside HA ingress iframe and standalone
+var _base = window.location.pathname;
+if (_base.indexOf('/api/hassio_ingress/') >= 0) {
+  _base = _base.replace(/\/+$/, '');
+} else {
+  _base = '';
+}
+const API = _base;
 let state = { status:{}, meals:{}, inventory:[], shopping:{} };
 let editingIndex = null;
 let expandedDay = null;
