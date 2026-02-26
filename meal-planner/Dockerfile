@@ -10,6 +10,7 @@ RUN pip3 install --no-cache-dir --break-system-packages -r /app/requirements.txt
 
 COPY server.py /app/server.py
 COPY dashboard.html /app/dashboard.html
+COPY seed_preferences.py /app/seed_preferences.py
 COPY run.sh /app/run.sh
 RUN chmod +x /app/run.sh
 

@@ -17,8 +17,10 @@ map:
   - share:rw
 options:
   data_path: /share/meal-planner
+  anthropic_api_key: ""
 schema:
   data_path: str
+  anthropic_api_key: str
 panel_icon: mdi:food-apple
 panel_title: Meals
 ingress: true
