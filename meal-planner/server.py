@@ -669,6 +669,18 @@ async def mark_meal_cooked(day: str):
     return {"day": day, "cooked": True}
 
 
+@app.delete("/api/meals/{day}")
+async def delete_meal(day: str):
+    mp = safe_read_json("meal-plan.json", {"meals": {}})
+    meals = mp.get("meals", {})
+    if day not in meals:
+        raise HTTPException(status_code=404, detail=f"No meal for '{day}'")
+    removed = meals.pop(day)
+    mp["meals"] = meals
+    safe_write_json("meal-plan.json", mp)
+    return {"status": "deleted", "day": day}
+
+
 # --- Inventory ---
 @app.get("/api/inventory")
 async def get_inventory():
@@ -737,6 +749,20 @@ async def toggle_purchased(delivery: str, index: int):
     sl["deliveries"][delivery]["items"] = items
     safe_write_json("shopping-list.json", sl)
     return {"status": "toggled", "purchased": item.get("purchased", False) if isinstance(item, dict) else False}
+
+
+@app.delete("/api/shopping/{delivery}/{index}")
+async def delete_shopping_item(delivery: str, index: int):
+    if delivery not in ["sunday", "midweek"]:
+        raise HTTPException(status_code=400, detail=f"Invalid delivery '{delivery}'")
+    sl = safe_read_json("shopping-list.json", {"deliveries": {}})
+    items = sl.get("deliveries", {}).get(delivery, {}).get("items", [])
+    if index < 0 or index >= len(items):
+        raise HTTPException(status_code=404, detail=f"Item {index} not found")
+    removed = items.pop(index)
+    sl["deliveries"][delivery]["items"] = items
+    safe_write_json("shopping-list.json", sl)
+    return {"status": "deleted", "item": removed}
 
 
 # --- Settings (API key) ---

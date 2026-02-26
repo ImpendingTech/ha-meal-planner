@@ -1,6 +1,6 @@
 name: Meal Planner
 description: Storecupboard, meal plans, shopping lists and expiry alerts — powered by JSON files and Claude
-version: "1.3.0"
+version: "1.3.1"
 slug: meal-planner
 url: https://github.com/ImpendingTech/ha-meal-planner
 arch:

@@ -378,7 +378,10 @@ function renderTonight() {
     h+='</div>';
   }
   if(meal.healthNotes) h+='<div style="font-size:13px;color:var(--text-dim);margin-top:8px">'+meal.healthNotes+'</div>';
-  h+='<button class="btn-cooked" onclick="markCooked(\''+today+'\')" '+(cooked?'disabled':'')+'>'+( cooked?'Cooked':'Mark as Cooked')+'</button></div>';
+  h+='<div style="display:flex;gap:8px;margin-top:12px">';
+  h+='<button class="btn-cooked" onclick="markCooked(\''+today+'\')" '+(cooked?'disabled':'')+'>'+( cooked?'Cooked':'Mark as Cooked')+'</button>';
+  h+='<button class="btn-icon danger" style="width:auto;padding:10px 14px;font-size:13px;" onclick="deleteMeal(\''+today+'\')" title="Delete meal">&#10005; Delete</button>';
+  h+='</div></div>';
   el.innerHTML=h;
 }
 
@@ -430,8 +433,16 @@ function renderRecipe(meal,day) {
     meal.instructions.forEach(function(s,i){h+='<div class="step"><span class="step-num">'+(i+1)+'.</span>'+s+'</div>';});
     h+='</div>';
   }
-  h+='<button class="btn-cooked" onclick="event.stopPropagation();markCooked(\''+day+'\')" '+(meal.cooked?'disabled':'')+'>'+(meal.cooked?'Cooked':'Mark as Cooked')+'</button></div>';
+  h+='<div style="display:flex;gap:8px;margin-top:12px">';
+  h+='<button class="btn-cooked" onclick="event.stopPropagation();markCooked(\''+day+'\')" '+(meal.cooked?'disabled':'')+'>'+(meal.cooked?'Cooked':'Mark as Cooked')+'</button>';
+  h+='<button class="btn-icon danger" style="width:auto;padding:10px 14px;font-size:13px;" onclick="event.stopPropagation();deleteMeal(\''+day+'\')" title="Delete meal">&#10005; Delete</button>';
+  h+='</div></div>';
   return h;
+}
+
+async function deleteMeal(day) {
+  if(!confirm('Delete '+capitalize(day)+'\'s meal?'))return;
+  await fetch(API+'/api/meals/'+day,{method:'DELETE'}); await fetchAll();
 }
 
 // Inventory
@@ -509,7 +520,8 @@ function renderShopping() {
       h+='<div class="shop-item '+(p?'purchased':'')+'" onclick="togglePurchased(\''+delivery+'\','+idx+')">';
       h+='<div class="shop-checkbox '+(p?'checked':'')+'">'+(p?'&#10003;':'')+'</div>';
       h+='<div style="flex:1"><div class="shop-item-name">'+(item.name||'')+'</div>'+(meals?'<div class="shop-item-meals">'+meals+'</div>':'')+(item.notes?'<div class="shop-item-meals">'+item.notes+'</div>':'')+'</div>';
-      h+='<span class="shop-item-amount">'+(item.amount||'')+'</span></div>';
+      h+='<span class="shop-item-amount">'+(item.amount||'')+'</span>';
+      h+='<button class="btn-icon danger" onclick="event.stopPropagation();deleteShopItem(\''+delivery+'\','+idx+')" title="Delete">&#10005;</button></div>';
     });
     if(d.alreadyInStock&&d.alreadyInStock.length) {
       h+='<div style="margin-top:12px;margin-bottom:4px;font-size:13px;color:var(--text-muted);font-weight:600">Already in Stock</div>';
@@ -519,6 +531,10 @@ function renderShopping() {
   el.innerHTML=h;
 }
 async function togglePurchased(d,i) { await fetch(API+'/api/shopping/'+d+'/'+i+'/purchased',{method:'PUT'}); await fetchAll(); }
+async function deleteShopItem(d,i) {
+  if(!confirm('Remove this item?'))return;
+  await fetch(API+'/api/shopping/'+d+'/'+i,{method:'DELETE'}); await fetchAll();
+}
 
 // ===== CHAT & AI =====
 function toggleChat() {
