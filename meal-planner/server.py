@@ -193,10 +193,11 @@ RULES:
 - Plant tracking: count every unique plant across the week. Herbs/spices = 0.25 each. Target 30+.
 - 5-a-day: 5 × 80g fruit/veg portions per day. Potatoes don't count. Beans max 1 portion.
 
-Use the provided tools to update data files. Always confirm what you've done to the user.
-When generating a meal plan, use the update_meal_plan tool.
-When generating a shopping list, use the update_shopping_list tool.
-If you need to update inventory or status, use those tools too.
+CRITICAL: You MUST use the provided tools to save your work. NEVER just describe a meal plan in text — always call update_meal_plan to save it. Similarly, always call update_shopping_list to save shopping lists. If you don't call the tools, the data won't be saved and the dashboard won't update.
+
+When generating a meal plan, you MUST call the update_meal_plan tool with the complete plan.
+When generating a shopping list, you MUST call the update_shopping_list tool.
+After using tools, give a brief summary of what you saved.
 """
 
 
@@ -421,8 +422,8 @@ def process_claude_request(response_id: str, user_message: str):
         for attempt in range(3):
             try:
                 result = client.messages.create(
-                    model="claude-sonnet-4-20250514",
-                    max_tokens=8192,
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=4096,
                     system=SYSTEM_PROMPT,
                     tools=TOOLS,
                     messages=messages,
@@ -460,8 +461,8 @@ def process_claude_request(response_id: str, user_message: str):
             all_messages.append({"role": "user", "content": tool_results})
 
             result = client.messages.create(
-                model="claude-sonnet-4-20250514",
-                max_tokens=8192,
+                model="claude-haiku-4-5-20251001",
+                max_tokens=4096,
                 system=SYSTEM_PROMPT,
                 tools=TOOLS,
                 messages=all_messages,
