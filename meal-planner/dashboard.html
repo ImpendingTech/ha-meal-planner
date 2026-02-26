@@ -200,6 +200,7 @@
   <button class="tab-btn" data-tab="week">Week</button>
   <button class="tab-btn" data-tab="cupboard">Cupboard</button>
   <button class="tab-btn" data-tab="shopping">Shopping</button>
+  <button class="tab-btn" data-tab="settings">Settings</button>
 </nav>
 
 <!-- Tonight's Dinner -->
@@ -224,6 +225,22 @@
 <!-- Shopping List -->
 <div id="tab-shopping" class="tab-content">
   <div id="shopping-content"></div>
+</div>
+
+<!-- Settings -->
+<div id="tab-settings" class="tab-content">
+  <div class="card">
+    <div class="card-title">Claude API Key</div>
+    <div class="card-subtitle">Get your key from <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent)">console.anthropic.com</a></div>
+    <div id="settings-status" style="margin-bottom:12px"></div>
+    <div class="form-group">
+      <label>API Key</label>
+      <input type="password" id="settings-api-key" placeholder="sk-ant-..." style="width:100%;padding:10px 12px;background:var(--bg-input);border:1px solid #4a4a4c;border-radius:var(--radius-sm);color:var(--text);font-size:14px;">
+    </div>
+    <div class="form-actions" style="justify-content:flex-start">
+      <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
+    </div>
+  </div>
 </div>
 
 <!-- Add/Edit Item Modal -->
@@ -584,8 +601,38 @@ async function triggerAction(action) {
   } catch(e) { addBubble('Network error','error'); }
 }
 
+// ===== SETTINGS =====
+async function loadSettings() {
+  try {
+    var r=await fetch(API+'/api/settings');
+    var d=await r.json();
+    var el=document.getElementById('settings-status');
+    if(d.claude_enabled) {
+      el.innerHTML='<span style="color:var(--green);font-weight:600">&#10003; Connected</span> <span style="color:var(--text-dim)">('+d.api_key_preview+')</span>';
+    } else {
+      el.innerHTML='<span style="color:var(--red);font-weight:600">&#10005; Not configured</span>';
+    }
+  } catch(e) { console.error(e); }
+}
+async function saveApiKey() {
+  var key=document.getElementById('settings-api-key').value.trim();
+  if(!key){alert('Please enter your API key');return;}
+  try {
+    var r=await fetch(API+'/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({anthropic_api_key:key})});
+    var d=await r.json();
+    if(r.ok) {
+      document.getElementById('settings-api-key').value='';
+      loadSettings();
+      alert('API key saved! Claude is now enabled.');
+    } else {
+      alert(d.detail||'Error saving key');
+    }
+  } catch(e) { alert('Network error'); }
+}
+
 // Init
 fetchAll();
+loadSettings();
 setInterval(fetchAll, 10000);
 </script>
 </body>

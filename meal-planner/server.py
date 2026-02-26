@@ -53,16 +53,40 @@ _rate_timestamps: List[float] = []
 # Claude client (lazy init)
 # ---------------------------------------------------------------------------
 _claude_client = None
+_claude_api_key: Optional[str] = None
+
+
+def _load_api_key() -> str:
+    """Read API key from file, then fall back to env var."""
+    key_file = DATA_DIR / ".api_key"
+    if key_file.exists():
+        key = key_file.read_text().strip()
+        if key:
+            return key
+    return os.environ.get("ANTHROPIC_API_KEY", "")
+
+
+def _save_api_key(key: str) -> None:
+    """Persist API key to file in data directory."""
+    key_file = DATA_DIR / ".api_key"
+    key_file.write_text(key.strip())
+    # Reset client so it picks up new key
+    global _claude_client, _claude_api_key
+    _claude_client = None
+    _claude_api_key = key.strip()
+    logger.info("API key saved and client reset")
 
 
 def get_claude_client():
-    global _claude_client
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    global _claude_client, _claude_api_key
+    api_key = _load_api_key()
     if not api_key:
         return None
-    if _claude_client is None:
+    # Re-init if key changed
+    if api_key != _claude_api_key or _claude_client is None:
         from anthropic import Anthropic
         _claude_client = Anthropic(api_key=api_key)
+        _claude_api_key = api_key
         logger.info("Claude client initialised")
     return _claude_client
 
@@ -712,6 +736,29 @@ async def toggle_purchased(delivery: str, index: int):
     sl["deliveries"][delivery]["items"] = items
     safe_write_json("shopping-list.json", sl)
     return {"status": "toggled", "purchased": item.get("purchased", False) if isinstance(item, dict) else False}
+
+
+# --- Settings (API key) ---
+@app.get("/api/settings")
+async def get_settings():
+    key = _load_api_key()
+    return {
+        "api_key_set": bool(key),
+        "api_key_preview": f"{key[:10]}...{key[-4:]}" if key and len(key) > 14 else ("***" if key else ""),
+        "claude_enabled": get_claude_client() is not None,
+    }
+
+
+@app.post("/api/settings")
+async def save_settings(request: Request):
+    body = await request.json()
+    key = body.get("anthropic_api_key", "").strip()
+    if not key:
+        raise HTTPException(status_code=400, detail="API key required")
+    if not key.startswith("sk-ant-"):
+        raise HTTPException(status_code=400, detail="Invalid key format — should start with sk-ant-")
+    _save_api_key(key)
+    return {"status": "saved", "claude_enabled": get_claude_client() is not None}
 
 
 # --- Preferences ---
