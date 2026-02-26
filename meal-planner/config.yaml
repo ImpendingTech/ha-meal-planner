@@ -1,6 +1,6 @@
 name: Meal Planner
 description: Storecupboard, meal plans, shopping lists and expiry alerts — powered by JSON files and Claude
-version: "1.0.0"
+version: "1.1.0"
 slug: meal-planner
 url: https://github.com/ImpendingTech/ha-meal-planner
 arch:
@@ -20,7 +20,7 @@ options:
   anthropic_api_key: ""
 schema:
   data_path: str
-  anthropic_api_key: str
+  anthropic_api_key: password
 panel_icon: mdi:food-apple
 panel_title: Meals
 ingress: true
